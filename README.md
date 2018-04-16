@@ -1,4 +1,4 @@
-先上github地址 https://github.com/gaohan1994/react-vw-layout
+先上github地址 https://github.com/gaohan1994/react-vw-layout 有空点个赞蛤~~
 ## 写在前面的话
 > 在接触到大漠先生牵头开发的vw解决方案之前，我使用的是阿里的第一代适配解决方案 [lib-flexible](https://github.com/amfe/lib-flexible) 在使用vw解决方案开发一套H5之后，我真正的被vw的威力所折服。
 由于大漠先生只给出了vue-cli的配置方式，并未给出react系列对应脚手架create-react-app配置版本，在看过大漠先生的配置之后，我在create-react-app脚手架生成的项目上进行了一套配置，使得使用react的各位师兄弟也可以使用vw解决方案！
@@ -14,6 +14,7 @@
 [《如何在Vue项目中使用vw实现移动端适配》](https://www.w3cplus.com/mobile/vw-layout-in-vue.html)
 [《如何在Vue项目中使用vw实现移动端适配》](https://www.w3cplus.com/mobile/vw-layout-in-vue.html)
 #### 重要的事情说三遍。一定要先大概看一下大漠先生的文章再往下看，否则可能会一头雾水。
+### ``更新css-modules配置，前面步骤不变，可直接跳到第六步。``
 ## 1.创建项目
 ```
 create-react-app react-vw-layout
@@ -30,6 +31,7 @@ y
 ```
 运行完eject之后项目结构如下
 ![项目结构.png](https://upload-images.jianshu.io/upload_images/7190172-5a860169c48324ff.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/400/h/400)
+
 第二步收工，第三部开始配置各种插件。
 
 ## 3.增加配置
@@ -152,8 +154,94 @@ export default App;
 ![打包后的css.png](https://upload-images.jianshu.io/upload_images/7190172-4c87d3ca855d4b0a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 可以看到已经成功编译，打完收工
 
-## 6.其他想说的话
-git地址再发一次 https://github.com/gaohan1994/react-vw-layout 没有配置成功的可以参考一下。
-当初看到大漠先生的vw适配方案真的是眼前一亮，在尝试了之后觉得这套方案的生产力非常强悍，其实按照本文进行配置已经可以满足相当一部分项目，除了一点就是没有使用``css-modules``，当然我自己已经成功配置了``css-modules``要修改的地方比较多，以后会出一篇文章来再继续分享，同时我是个Typescript重度患者！我极度作死的成功配置了``create-react-app typescript version``的``vw + css-modules``版本，现在回想起来配置的那几天真的生不如死。。。各种
+## 6.加入css-modules配置
+
+一般的小项目不适用``css-modules``已经可以hold住了，但是页面多起来还是建议使用``css-modules``，下面介绍一下用法：
+
+执行```npm i --save react-css-modules```
+
+在``App.js``文件中引入插件
+``import CSSModules from 'react-css-modules';``
+
+修改css文件的引入方式
+从``import './App.css';``修改为``import styles from './App.css';``
+
+修改引用Css方式
+``className``=>``styleName``
+
+修改导出方式
+``export default App``=>``export default CSSModules(App, styles);``
+
+保存，从新执行``npm start``查看页面发现失败
+
+![clipboard.png](/img/bV8D9V)
+
+原因是未打开``css import``配置，此时``import styles from './App.css';``该语句并未成功引入``css``文件。
+
+打开``webpack.config.dev.js``加入``modules: true``
+找到如下位置
+```js
+{
+    test: /\.css$/,
+    use: [
+      require.resolve('style-loader'),
+      {
+        loader: require.resolve('css-loader'),
+        options: {
+          //看这里看这里看这里看这里
+          modules: true,
+          
+          importLoaders: 1,
+        },
+      },
+      {
+        loader: require.resolve('postcss-loader'),
+        options: {
+           //.....省略
+        }
+      }
+    ],
+  },
+```
+保存，再次执行``npm start``查看页面
+![clipboard.png](/img/bV8Ec6)
+成功！但是这个``class名``太过乱码不适于调试，再次打开webpack.config.dev.js
+找到如下位置加入语句``localIdentName:'[name]_[local]_[hash:base64:5]'``
+```js
+{
+    test: /\.css$/,
+    use: [
+      require.resolve('style-loader'),
+      {
+        loader: require.resolve('css-loader'),
+        options: {
+          modules: true,
+          importLoaders: 1,
+          //看这里看这里看这里
+          localIdentName: '[name]_[local]_[hash:base64:5]'
+        },
+      },
+      {
+        loader: require.resolve('postcss-loader'),
+        options: {
+           //.....省略
+        }
+      }
+    ],
+  },
+```
+再次执行``npm start``查看页面
+![clipboard.png](/img/bV8Eew)
+#### OJBK大功告成！
+最后相同步骤加入到``webpack.config.prod.js``中
+执行``npm run build`` 查看打包文件
+![clipboard.png](/img/bV8Egx)
+### 彳亍吧，OK了。
+
+
+## END.其他想说的话
+> git地址再发一次，希望有空能帮忙点个赞~谢谢~~！！ https://github.com/gaohan1994/react-vw-layout 没有配置成功的可以参考一下。尤其是css-modules可能改的地方比较多。
+
+> 当初看到大漠先生的vw适配方案真的是眼前一亮，在尝试了之后觉得这套方案的生产力非常强悍，其实按照本文进行配置已经可以满足相当一部分项目，除了一点就是没有使用``css-modules``，当然我自己已经成功配置了``css-modules``要修改的地方比较多，以后会出一篇文章来再继续分享，同时我是个Typescript重度患者！我极度作死的成功配置了``create-react-app typescript version``的``vw + css-modules``版本，现在回想起来配置的那几天真的生不如死。。。各种
 踩坑。 等如果有人需要ts + react + vw  解决方案的时候我再写一篇文章吧。
 那就到这里了，希望大家使用vw解决方案玩的愉快！
